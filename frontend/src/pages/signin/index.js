@@ -15,8 +15,8 @@ const Page = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
-
         setDisabled(true)
+        setError('')
 
         const json = await api.login(email, password)
 

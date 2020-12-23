@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { PageArea } from './styled'
 import { PageContainer, PageTitle, ErrorMessage } from '../../components/MainComponents'
 import useApi from '../../helpers/OlxAPI'
@@ -7,23 +7,45 @@ const Page = () => {
 
     const api = useApi()
 
+    const [name, setName] = useState('')
+    const [stateLocation, setStateLocation] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [rememberPassword, setRememberPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+
+    const [stateList, setStateList] = useState([])
+
     const [disabled, setDisabled] = useState(false)
     const [error, setError] = useState('')
 
+    useEffect( () => {
+
+        const getStatesLocation = async () => {
+            const list = await api.getStates()
+            setStateList(list)
+        }
+
+        getStatesLocation()
+
+    }, [])
+
     const handleSubmit = async (event) => {
         event.preventDefault()
-
         setDisabled(true)
+        setError('')
 
-        const json = await api.login(email, password)
+        if(password !== confirmPassword){
+            setError('Senhas não batem')
+            setDisabled(false)
+            return
+        }
+
+        const json = await api.register(name, email, password, stateLocation)
 
         if(json.error){
             setError(json.error)
         }else{
-            doLogin(json.token, rememberPassword)   
+            doLogin(json.token)   
             window.location.href = '/'
         }
 
@@ -34,7 +56,7 @@ const Page = () => {
     return(
         <PageContainer>
 
-            <PageTitle>Login</PageTitle>
+            <PageTitle>Cadastro</PageTitle>
             
             <PageArea>
                 
@@ -43,6 +65,40 @@ const Page = () => {
                 }
 
                 <form onSubmit={handleSubmit}>
+
+                <label className="area">
+                        <div className="area--title">Nome Completo</div>
+                        <div className="area--input">
+                            <input 
+                                type="text" 
+                                disabled={disabled}
+                                value={name}
+                                onChange={ event => setName(event.target.value) }
+                                required
+                            />
+                        </div>
+                    </label>
+
+                    <label className="area">
+                        <div className="area--title">Estado</div>
+                        <div className="area--input">
+                            <select 
+                                value={stateLocation} 
+                                onChange={event => 
+                                setStateLocation(event.target.value)} 
+                                required
+                            >
+                                <option></option>
+                                {
+                                    stateList.map( (state, key) => 
+                                        <option key={key} value={state._id}>
+                                            { state.name }
+                                        </option>
+                                    )
+                                }
+                            </select>                            
+                        </div>
+                    </label>
 
                     <label className="area">
                         <div className="area--title">E-mail</div>
@@ -71,13 +127,14 @@ const Page = () => {
                     </label>
 
                     <label className="area">
-                        <div className="area--title">Lembrar Senha</div>
+                        <div className="area--title">Confirmar Senha</div>
                         <div className="area--input">
                             <input 
-                                type="checkbox" 
+                                type="password" 
                                 disabled={disabled}
-                                checked={rememberPassword}
-                                onChange={ event => setRememberPassword(!rememberPassword) }
+                                value={confirmPassword}
+                                onChange={ event => setConfirmPassword(event.target.value) }
+                                required
                             />
                         </div>
                     </label>
