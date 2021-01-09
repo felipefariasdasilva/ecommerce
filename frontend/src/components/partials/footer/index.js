@@ -5,7 +5,8 @@ const Header = () => {
 
     return(
         <FooterArea>
-            ...
+            Todos os direitos reservados <br/>
+            OLX Clone by Felipe Farias
         </FooterArea>
     )
 }
